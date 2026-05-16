@@ -12,6 +12,7 @@ import Auth from './pages/Auth';
 import Admin from './pages/Admin';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 export default function App() {
   const { user, isLoading, page, homeConfig } = useApp();
@@ -132,6 +133,7 @@ export default function App() {
       {showBottomNav && (
         <BottomNav />
       )}
+      <SpeedInsights />
     </div>
   );
 }
