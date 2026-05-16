@@ -1,0 +1,168 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and statistics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "avatar": { "type": "string" },
+        "coins": { "type": "number" },
+        "tokens": { "type": "number" },
+        "matchesPlayed": { "type": "number" },
+        "kills": { "type": "number" },
+        "earnings": { "type": "number" },
+        "isVerified": { "type": "boolean" },
+        "isAdmin": { "type": "boolean" }
+      },
+      "required": ["id", "name", "email", "coins", "isAdmin"]
+    },
+    "Tournament": {
+      "title": "Tournament",
+      "description": "Esports match details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "game": { "type": "string" },
+        "category": { "type": "string" },
+        "type": { "type": "string", "enum": ["SOLO", "DUO", "SQUAD"] },
+        "version": { "type": "string" },
+        "map": { "type": "string" },
+        "prizePool": { "type": "number" },
+        "perKill": { "type": "number" },
+        "prizes": {
+          "type": "object",
+          "properties": {
+            "first": { "type": "number" },
+            "second": { "type": "number" },
+            "third": { "type": "number" }
+          }
+        },
+        "entryFee": { "type": "number" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["UPCOMING", "LIVE", "COMPLETED"] },
+        "totalSlots": { "type": "number" },
+        "joinedSlots": { "type": "number" },
+        "banner": { "type": "string" },
+        "rules": { "type": "array", "items": { "type": "string" } },
+        "roomId": { "type": "string" },
+        "password": { "type": "string" }
+      },
+      "required": ["id", "title", "game", "category", "entryFee", "status"]
+    },
+    "Participation": {
+      "title": "Participation",
+      "description": "Record of a user joining a tournament",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "tournamentId": { "type": "string" },
+        "gameName": { "type": "string" },
+        "teammates": { "type": "array", "items": { "type": "string" } },
+        "slot": { "type": "number" },
+        "joinedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "tournamentId", "gameName", "joinedAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["DEPOSIT", "WITHDRAW", "EARNING", "ENTRY_FEE"] },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["PENDING", "COMPLETED", "REJECTED"] },
+        "method": { "type": "string", "enum": ["BKASH", "NAGAD", "ROCKET", "UPAY"] },
+        "senderNumber": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "receiverNumber": { "type": "string" },
+        "time": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "type", "amount", "status", "time"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User notification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "time": { "type": "string" },
+        "read": { "type": "boolean" },
+        "type": { "type": "string", "enum": ["INFO", "SUCCESS", "WARNING"] }
+      },
+      "required": ["id", "title", "message", "time", "read", "type"]
+    },
+    "HomeConfig": {
+      "title": "HomeConfig",
+      "description": "Global home page configuration",
+      "type": "object",
+      "properties": {
+        "banners": { "type": "array" },
+        "telegramLink": { "type": "string" },
+        "youtubeLink": { "type": "string" },
+        "maintenanceMode": { "type": "boolean" },
+        "tickerAnnouncement": { "type": "string" },
+        "appLogo": { "type": "string" },
+        "categories": { "type": "array" },
+        "modes": { "type": "array" }
+      }
+    },
+    "PaymentConfig": {
+      "title": "PaymentConfig",
+      "description": "Payment methods configuration",
+      "type": "object",
+      "properties": {
+        "bkash": { "type": "string" },
+        "nagad": { "type": "string" },
+        "rocket": { "type": "string" },
+        "bkashLogo": { "type": "string" },
+        "nagadLogo": { "type": "string" },
+        "rocketLogo": { "type": "string" },
+        "minDeposit": { "type": "number" },
+        "minWithdraw": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User documents"
+    },
+    "tournaments/{tournamentId}": {
+      "schema": "Tournament",
+      "description": "Match documents"
+    },
+    "participations/{participationId}": {
+      "schema": "Participation",
+      "description": "Participation documents"
+    },
+    "transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Financial records"
+    },
+    "users/{userId}/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User specific notifications"
+    },
+    "config/home": {
+      "schema": "HomeConfig",
+      "description": "Global home config"
+    },
+    "config/payment": {
+      "schema": "PaymentConfig",
+      "description": "Payment configuration"
+    },
+    "admins/{adminId}": {
+      "schema": { "type": "object", "properties": { "role": { "type": "string" } } },
+      "description": "List of admin users"
+    }
+  }
+}
