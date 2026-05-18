@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tunex Gaming</string>
+    <string name="title_activity_main">Tunex Gaming</string>
+    <string name="package_name">com.tunexgaming.app</string>
+    <string name="custom_url_scheme">com.tunexgaming.app</string>
+</resources>

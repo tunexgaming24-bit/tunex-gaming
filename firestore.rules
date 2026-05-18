@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isEmailVerified() { return request.auth.token.email_verified == true; }
+    function isAdmin() { return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // Entity Validators
+    function isValidUser(data) {
+      return data.id == request.auth.uid 
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.email is string && data.email.size() > 0 && data.email.size() <= 200
+        && data.coins is number
+        && data.isAdmin is bool
+        && data.keys().hasAll(['id', 'name', 'email', 'coins', 'isAdmin'])
+        && data.keys().size() >= 5;
+    }
+
+    function isValidTournament(data) {
+      return data.id is string && data.id.size() > 0
+        && data.title is string && data.title.size() > 0
+        && data.entryFee is number
+        && data.status in ['UPCOMING', 'LIVE', 'COMPLETED']
+        && data.keys().hasAll(['id', 'title', 'game', 'category', 'entryFee', 'status']);
+    }
+
+    // Collection Rules
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().isAdmin == false && incoming().coins == 0;
+      allow update: if isOwner(userId) && isValidUser(incoming()) 
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'avatar'])
+        || isAdmin();
+    }
+
+    match /tournaments/{tournamentId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && isValidTournament(incoming());
+    }
+
+    match /participations/{participationId} {
+      allow read: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(participationId) 
+        && isOwner(incoming().userId)
+        && exists(/databases/$(database)/documents/tournaments/$(incoming().tournamentId));
+      allow delete: if isAdmin();
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isOwner(incoming().userId) && incoming().status == 'PENDING';
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /users/{userId}/notifications/{notificationId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /config/{configId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Admins list
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only manageable via Cloud Console for bootstrapping
+    }
+  }
+}
